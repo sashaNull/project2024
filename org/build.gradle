@@ -17,7 +17,7 @@ dependencies {
 
 // Define tasks for compiling and running
 task compileUI(type: Exec) {
-    commandLine 'javac', '-cp', '.;lib/json-simple-1.1.1.jar', 'UserInterface.java'
+    commandLine 'javac', '-cp', '.;lib/json-simple-1.1.1.jar', '-d', 'build', 'UserInterface.java'
 }
 
 task compileTest(type: Exec) {
@@ -27,4 +27,6 @@ task compileTest(type: Exec) {
 // Define task dependencies
 compileTest.dependsOn compileUI
 
-// RUN COMMAND: java -cp ".;lib/json-simple-1.1.1.jar" UserInterface upenn 123456
+// RUN UI:
+// cd build
+// java -cp ".;lib/json-simple-1.1.1.jar" UserInterface upenn 123456
