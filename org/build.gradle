@@ -29,4 +29,4 @@ compileTest.dependsOn compileUI
 
 // RUN UI:
 // cd build
-// java -cp ".;lib/json-simple-1.1.1.jar" UserInterface upenn 123456
+// java -cp ".;../lib/json-simple-1.1.1.jar" UserInterface upenn 123456
