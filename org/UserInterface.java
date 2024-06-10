@@ -82,9 +82,6 @@ public class UserInterface {
 		System.out.printf("Total donation amount: $%d (%.2f%% of target)%n", total_amount, ((double)total_amount/fund.getTarget())*100);
 		System.out.println("Press the Enter key to go back to the listing of funds");
 		in.nextLine();
-		
-		
-		
 	}
 	
 	
@@ -96,17 +93,24 @@ public class UserInterface {
 		String password = args[1];
 		
 		
-		Organization org = ds.attemptLogin(login, password);
-		
-		if (org == null) {
-			System.out.println("Login failed.");
-		}
-		else {
+		try
+		{
+			Organization org = ds.attemptLogin(login, password);
+			
+			if (org == null) {
+				System.out.println("Login failed.");
+			}
+			else {
 
-			UserInterface ui = new UserInterface(ds, org);
-		
-			ui.start();
-		
+				UserInterface ui = new UserInterface(ds, org);
+			
+				ui.start();
+			
+			}
+		}
+		catch (IllegalStateException e)
+		{
+			System.out.println("Error in communicating with server");
 		}
 	}
 
