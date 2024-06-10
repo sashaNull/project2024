@@ -26,3 +26,5 @@ task compileTest(type: Exec) {
 
 // Define task dependencies
 compileTest.dependsOn compileUI
+
+// RUN COMMAND: java -cp ".;lib/json-simple-1.1.1.jar" UserInterface upenn 123456
