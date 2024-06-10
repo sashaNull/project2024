@@ -3,3 +3,4 @@
 */.DS_Store
 org/build/
 db_directory/
+org/.gradle/
