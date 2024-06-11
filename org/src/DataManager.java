@@ -77,7 +77,7 @@ public class DataManager {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			throw new IllegalStateException("Error in communicating with server");
+			return null;
 		}
 	}
 
