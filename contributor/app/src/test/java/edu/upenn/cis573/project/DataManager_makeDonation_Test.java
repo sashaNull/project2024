@@ -4,24 +4,23 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import java.util.Map;
 
-public class DataManager_getFundName_Test {
+public class DataManager_makeDonation_Test {
 
     @Test
-    public void testSuccess() {
+    public void testMakeDonationSuccess() {
         DataManager dm = new DataManager(new WebClient(null, 0) {
             @Override
             public String makeRequest(String resource, Map<String, Object> queryParams) {
-                return "{\"status\":\"success\",\"data\":\"Snoopy\"}";
+                return "{\"status\":\"success\"}";
             }
         });
 
-        String name = dm.getFundName("12345");
-        assertNotNull(name);
-        assertEquals("Snoopy", name);
+        boolean result = dm.makeDonation("contrib1", "fund1", "100");
+        assertTrue(result);
     }
 
     @Test
-    public void testFailure() {
+    public void testMakeDonationFailure() {
         DataManager dm = new DataManager(new WebClient(null, 0) {
             @Override
             public String makeRequest(String resource, Map<String, Object> queryParams) {
@@ -29,13 +28,12 @@ public class DataManager_getFundName_Test {
             }
         });
 
-        String name = dm.getFundName("12345");
-        assertNotNull(name);
-        assertEquals("Unknown Fund", name);
+        boolean result = dm.makeDonation("contrib1", "fund1", "100");
+        assertFalse(result);
     }
 
     @Test
-    public void testException() {
+    public void testMakeDonationException() {
         DataManager dm = new DataManager(new WebClient(null, 0) {
             @Override
             public String makeRequest(String resource, Map<String, Object> queryParams) {
@@ -43,12 +41,12 @@ public class DataManager_getFundName_Test {
             }
         });
 
-        String name = dm.getFundName("12345");
-        assertNull(name);
+        boolean result = dm.makeDonation("contrib1", "fund1", "100");
+        assertFalse(result);
     }
 
     @Test
-    public void testInvalidJson() {
+    public void testMakeDonationInvalidJson() {
         DataManager dm = new DataManager(new WebClient(null, 0) {
             @Override
             public String makeRequest(String resource, Map<String, Object> queryParams) {
@@ -56,7 +54,7 @@ public class DataManager_getFundName_Test {
             }
         });
 
-        String name = dm.getFundName("12345");
-        assertNull(name);
+        boolean result = dm.makeDonation("contrib1", "fund1", "100");
+        assertFalse(result);
     }
 }
