@@ -13,7 +13,7 @@ public class DataManager_attemptLogin_Test {
 		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
 			@Override
 			public String makeRequest(String resource, Map<String, Object> queryParams) {
-				return "{\"status\":\"success\",\"data\":{\"_id\":\"12345\",\"name\":\"Test Org\",\"descrption\":\"Test Organization\",\"funds\":[]}}";
+				return "{\"status\":\"success\",\"data\":{\"_id\":\"12345\",\"name\":\"Test Org\",\"description\":\"Test Organization\",\"funds\":[]}}";
 			}
 		});
 		
@@ -31,7 +31,7 @@ public class DataManager_attemptLogin_Test {
 		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
 			@Override
 			public String makeRequest(String resource, Map<String, Object> queryParams) {
-				return "{\"status\":\"success\",\"data\":{\"_id\":\"12345\",\"name\":\"Test Org\",\"descrption\":\"Test Organization\",\"funds\":[{\"_id\":\"fund1\",\"name\":\"Fund 1\",\"description\":\"Description 1\",\"target\":1000,\"donations\":[]}]}}";
+				return "{\"status\":\"success\",\"data\":{\"_id\":\"12345\",\"name\":\"Test Org\",\"description\":\"Test Organization\",\"funds\":[{\"_id\":\"fund1\",\"name\":\"Fund 1\",\"description\":\"Description 1\",\"target\":1000,\"donations\":[]}]}}";
 			}
 		});
 		
@@ -58,7 +58,7 @@ public class DataManager_attemptLogin_Test {
 		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
 			@Override
 			public String makeRequest(String resource, Map<String, Object> queryParams) {
-				return "{\"status\":\"success\",\"data\":{\"_id\":\"12345\",\"name\":\"Test Org\",\"descrption\":\"Test Organization\",\"funds\":[{\"_id\":\"fund1\",\"name\":\"Fund 1\",\"description\":\"Description 1\",\"target\":1000,\"donations\":[{\"contributor\":\"contrib1\",\"amount\":500,\"date\":\"2023-06-01\"}]}]}}";
+				return "{\"status\":\"success\",\"data\":{\"_id\":\"12345\",\"name\":\"Test Org\",\"description\":\"Test Organization\",\"funds\":[{\"_id\":\"fund1\",\"name\":\"Fund 1\",\"description\":\"Description 1\",\"target\":1000,\"donations\":[{\"contributor\":\"contrib1\",\"amount\":500,\"date\":\"2023-06-01\"}]}]}}";
 			}
 		}) {
 			@Override
