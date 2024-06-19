@@ -12,9 +12,11 @@ import org.json.simple.parser.JSONParser;
 public class DataManager {
 
 	private final WebClient client;
+	private Map<String, String> contributorNameCache;
 
 	public DataManager(WebClient client) {
 		this.client = client;
+		this.contributorNameCache = new HashMap<>();
 	}
 
 	/**
@@ -38,7 +40,7 @@ public class DataManager {
 				JSONObject data = (JSONObject)json.get("data");
 				String fundId = (String)data.get("_id");
 				String name = (String)data.get("name");
-				String description = (String)data.get("descrption");
+				String description = (String)data.get("description");
 				Organization org = new Organization(fundId, name, description);
 
 				JSONArray funds = (JSONArray)data.get("funds");
@@ -89,6 +91,10 @@ public class DataManager {
 	 */
 	public String getContributorName(String id) {
 
+		if (contributorNameCache.containsKey(id)) {
+            return contributorNameCache.get(id);
+        }
+
 		try {
 
 			Map<String, Object> map = new HashMap<>();
@@ -101,6 +107,7 @@ public class DataManager {
 
 			if (status.equals("success")) {
 				String name = (String)json.get("data");
+				contributorNameCache.put(id, name);
 				return name;
 			}
 			else return null;
