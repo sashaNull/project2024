@@ -34,7 +34,6 @@ public class DataManager {
 			JSONObject json = (JSONObject) parser.parse(response);
 			String status = (String)json.get("status");
 
-
 			if (status.equals("success")) {
 				JSONObject data = (JSONObject)json.get("data");
 				String fundId = (String)data.get("_id");
@@ -49,7 +48,8 @@ public class DataManager {
 					fundId = (String)fund.get("_id");
 					name = (String)fund.get("name");
 					description = (String)fund.get("description");
-					long target = (Long)fund.get("target");
+					Long targetLong = (Long)fund.get("target");
+					long target = targetLong != null ? targetLong : 0;
 
 					Fund newFund = new Fund(fundId, name, description, target);
 
@@ -60,7 +60,8 @@ public class DataManager {
 						JSONObject donation = (JSONObject) it2.next();
 						String contributorId = (String)donation.get("contributor");
 						String contributorName = this.getContributorName(contributorId);
-						long amount = (Long)donation.get("amount");
+						Long amountLong = (Long)donation.get("amount");
+						long amount = amountLong != null ? amountLong : 0;
 						String date = (String)donation.get("date");
 						donationList.add(new Donation(fundId, contributorName, amount, date));
 					}
@@ -91,8 +92,8 @@ public class DataManager {
 		try {
 
 			Map<String, Object> map = new HashMap<>();
-			map.put("_id", id);
-			String response = client.makeRequest("/findContributrNameById", map);
+			map.put("id", id);
+			String response = client.makeRequest("/findContributorNameById", map);
 
 			JSONParser parser = new JSONParser();
 			JSONObject json = (JSONObject) parser.parse(response);
@@ -103,7 +104,6 @@ public class DataManager {
 				return name;
 			}
 			else return null;
-
 
 		}
 		catch (Exception e) {
@@ -143,6 +143,4 @@ public class DataManager {
 			return null;
 		}	
 	}
-
-
 }
