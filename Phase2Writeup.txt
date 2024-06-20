@@ -1,0 +1,20 @@
+Sasha Nguyen, Matthieu Perez, Rebecca Metzman
+In addition to implementing the tasks described above, your team should also write a brief report that includes the following:
+The Additional Tasks that you would like graded for this phase. Please keep in mind that we will only grade three Additional Tasks for a group of three, and four Additional Tasks for a group of four. If you list more than that, the tasks that get graded will be decided at the grader’s discretion.
+2.6, 2.8, 2.11 (1.10)
+For each task you completed in this phase (Required or Additional), a brief description of the changes you made to the provided code, e.g. the names of any classes or methods that were changed, new methods that were created, etc.
+For 2.1 we’ve implemented a caching mechanism in the getContributorName method by adding a new private Map<String, String> contributorNameCache. The cache improves performance by storing previously retrieved contributor names, reducing the need for repeated network calls.
+For 2.2 Added validation checks to ensure that the WebClient, login, and password parameters are not null.Added error handling for cases when the WebClient cannot connect to the server, returns null, or provides malformed JSON data.Updated methods to throw IllegalStateException or IllegalArgumentException where appropriate to match the test cases. And for  UserInterface Class:Updated the start, createFund, and main methods to handle exceptions 
+For 2.3 we added the class ContributorAggregate.java to deal with aggregating donations, we also added a displayAggregatedDonation method to the UI class.  We also added an aggregatedDonations to cache the aggregated donations.
+For 2.6 Added the method getAggregatedDonations() to aggregate donations by fund, cache the results, and order them by total donation amount in descending order. Updated the onResume(). Created a new class to hold aggregate data for donations.
+For 2.8, the code now includes improved user prompts for commands like logging out, along with new methods for managing user sessions effectively.
+For 2.11 (1.10) we added a DateTimeFormatter field called formatter to change the format of the date displayed 
+
+Any known bugs or other issues with the tasks you attempted in this phase.
+Instructions on how to start each app, if you changed anything from the original version of the code, e.g. the name of the Java main class or JavaScript entry point, arguments to the programs, etc. If you did not change anything, you may omit this.
+A brief but specific description of each team member’s contributions, including the task numbers that they worked on.
+Rebecca worked on 2.3 and 2.11 (which we did 1.10 for)
+Sasha worked on 2.1 and 2.8
+Mathieu 2.2 and 2.6
+
+The writeup should be committed to your GitHub repo as a plain-text or .md file named “Phase 2 writeup” by the deadline stated above.
