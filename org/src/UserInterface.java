@@ -31,6 +31,7 @@ public class UserInterface {
                 System.out.println("Enter the fund number to see more information.");
             }
             System.out.println("Enter 0 to create a new fund");
+            System.out.println("Enter 'l' or 'logout' to log out.");
             System.out.println("Enter 'q' or 'quit' to exit the program.");
 
             String input = in.nextLine().trim();
@@ -38,6 +39,12 @@ public class UserInterface {
             if (input.equals("q") || input.equals("quit")) {
                 System.out.println("Good bye!");
                 break;
+            } else if (input.equals("l") || input.equals("logout")) {
+                logout();
+                if (!login()) {
+                    System.out.println("Login failed.");
+                    break;
+                }
             }
 
             try {
@@ -47,11 +54,39 @@ public class UserInterface {
                 } else if (option > 0 && option <= org.getFunds().size()) {
                     displayFund(option);
                 } else {
-                    System.out.println("Invalid option. Please enter a valid fund number, 0 to create a new fund, or 'q'/'quit' to exit.");
+                    System.out.println(
+                            "Invalid option. Please enter a valid fund number, 0 to create a new fund, or 'q'/'quit' to exit.");
                 }
             } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a number, 0 to create a new fund, or 'q'/'quit' to exit.");
+                System.out.println(
+                        "Invalid input. Please enter a number, 0 to create a new fund, or 'q'/'quit' to exit.");
             }
+        }
+    }
+    
+    private void logout() {
+        System.out.println("\nLogging out...\n");
+        this.org = null;
+    }
+
+    private boolean login() {
+        System.out.println("Please log in again.");
+        System.out.print("Enter username: ");
+        String login = in.nextLine().trim();
+        System.out.print("Enter password: ");
+        String password = in.nextLine().trim();
+
+        try {
+            Organization org = dataManager.attemptLogin(login, password);
+            if (org == null) {
+                return false;
+            } else {
+                this.org = org;
+                return true;
+            }
+        } catch (IllegalStateException e) {
+            System.out.println("Error in communicating with server.");
+            return false;
         }
     }
 
@@ -115,12 +150,15 @@ public class UserInterface {
         for (Donation donation : donations) {
             total_amount += donation.getAmount();
             String formattedDate = Instant.parse(donation.getDate()).atZone(ZoneId.systemDefault()).format(formatter);
-            System.out.println("* " + donation.getContributorName() + ": $" + donation.getAmount() + " on " + formattedDate);
+            System.out.println(
+                    "* " + donation.getContributorName() + ": $" + donation.getAmount() + " on " + formattedDate);
         }
 
-        System.out.printf("Total donation amount: $%d (%.2f%% of target)%n", total_amount, ((double)total_amount/fund.getTarget())*100);
+        System.out.printf("Total donation amount: $%d (%.2f%% of target)%n", total_amount,
+                ((double) total_amount / fund.getTarget()) * 100);
 
-        System.out.println("Enter 'a' to see aggregated donations by contributor or press Enter to go back to the listing of funds");
+        System.out.println(
+                "Enter 'a' to see aggregated donations by contributor or press Enter to go back to the listing of funds");
         String input = in.nextLine().trim();
         if (input.equals("a")) {
             displayAggregatedDonations(fund);
@@ -131,7 +169,8 @@ public class UserInterface {
         List<ContributorAggregate> aggregatedDonations = fund.getAggregatedDonations();
         System.out.println("\n\nAggregated Donations:");
         for (ContributorAggregate aggregate : aggregatedDonations) {
-            System.out.printf("%s, %d donations, $%d total%n", aggregate.getContributorName(), aggregate.getDonationCount(), aggregate.getTotalAmount());
+            System.out.printf("%s, %d donations, $%d total%n", aggregate.getContributorName(),
+                    aggregate.getDonationCount(), aggregate.getTotalAmount());
         }
         System.out.println("Press the Enter key to go back to the listing of funds");
         in.nextLine();
@@ -141,8 +180,13 @@ public class UserInterface {
 
         DataManager ds = new DataManager(new WebClient("localhost", 3001));
 
-        String login = "upenn";
-        String password = "123456";
+        String login = "";
+        String password = "";
+
+        if (args.length == 2) {
+            login = args[0];
+            password = args[1];
+        }
 
         try {
             Organization org = ds.attemptLogin(login, password);
