@@ -1,6 +1,5 @@
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
@@ -63,7 +62,7 @@ public class UserInterface {
             }
         }
     }
-    
+
     private void logout() {
         System.out.println("\nLogging out...\n");
         this.org = null;
@@ -130,8 +129,17 @@ public class UserInterface {
             }
         }
 
-        Fund fund = dataManager.createFund(org.getId(), name, description, target);
-        org.getFunds().add(fund);
+        try {
+            Fund fund = dataManager.createFund(org.getId(), name, description, target);
+            if (fund != null) {
+                org.getFunds().add(fund);
+                System.out.println("Fund created successfully.");
+            } else {
+                System.out.println("Failed to create fund. Please try again.");
+            }
+        } catch (IllegalStateException e) {
+            System.out.println("Error in communicating with server. Please try again.");
+        }
     }
 
     public void displayFund(int fundNumber) {
@@ -158,21 +166,7 @@ public class UserInterface {
                 ((double) total_amount / fund.getTarget()) * 100);
 
         System.out.println(
-                "Enter 'a' to see aggregated donations by contributor or press Enter to go back to the listing of funds");
-        String input = in.nextLine().trim();
-        if (input.equals("a")) {
-            displayAggregatedDonations(fund);
-        }
-    }
-
-    public void displayAggregatedDonations(Fund fund) {
-        List<ContributorAggregate> aggregatedDonations = fund.getAggregatedDonations();
-        System.out.println("\n\nAggregated Donations:");
-        for (ContributorAggregate aggregate : aggregatedDonations) {
-            System.out.printf("%s, %d donations, $%d total%n", aggregate.getContributorName(),
-                    aggregate.getDonationCount(), aggregate.getTotalAmount());
-        }
-        System.out.println("Press the Enter key to go back to the listing of funds");
+                "Press the Enter key to go back to the listing of funds");
         in.nextLine();
     }
 
@@ -188,17 +182,25 @@ public class UserInterface {
             password = args[1];
         }
 
-        try {
-            Organization org = ds.attemptLogin(login, password);
+        while (true) {
+            try {
+                Organization org = ds.attemptLogin(login, password);
 
-            if (org == null) {
-                System.out.println("Login failed.");
-            } else {
-                UserInterface ui = new UserInterface(ds, org);
-                ui.start();
+                if (org == null) {
+                    System.out.println("Login failed.");
+                    return;
+                } else {
+                    UserInterface ui = new UserInterface(ds, org);
+                    ui.start();
+                    return;
+                }
+            } catch (IllegalStateException e) {
+                System.out.println("Error in communicating with server. Please try again.");
+                System.out.print("Enter username: ");
+                login = new Scanner(System.in).nextLine().trim();
+                System.out.print("Enter password: ");
+                password = new Scanner(System.in).nextLine().trim();
             }
-        } catch (IllegalStateException e) {
-            System.out.println("Error in communicating with server");
         }
     }
 }

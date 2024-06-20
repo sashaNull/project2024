@@ -1,8 +1,7 @@
 package edu.upenn.cis573.project;
 
 import java.io.Serializable;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class Contributor implements Serializable {
 
@@ -15,6 +14,7 @@ public class Contributor implements Serializable {
     private String creditCardExpiryYear;
     private String creditCardPostCode;
     private List<Donation> donations;
+    private Map<String, ContributorAggregate> aggregatedDonationsCache;
 
     public Contributor(String id, String name, String email, String creditCardNumber, String creditCardCVV, String creditCardExpiryMonth, String creditCardExpiryYear, String creditCardPostCode) {
         this.id = id;
@@ -26,6 +26,7 @@ public class Contributor implements Serializable {
         this.creditCardExpiryYear = creditCardExpiryYear;
         this.creditCardPostCode = creditCardPostCode;
         donations = new LinkedList<>();
+        aggregatedDonationsCache = null; // Initialize the cache as null
     }
 
     public String getId() {
@@ -66,5 +67,24 @@ public class Contributor implements Serializable {
 
     public void setDonations(List<Donation> donations) {
         this.donations = donations;
+        aggregatedDonationsCache = null; // Invalidate the cache when donations are set
+    }
+
+    public List<ContributorAggregate> getAggregatedDonations() {
+        if (aggregatedDonationsCache == null) {
+            aggregatedDonationsCache = new HashMap<>();
+            for (Donation donation : donations) {
+                String fundName = donation.getFundName();
+                ContributorAggregate aggregate = aggregatedDonationsCache.get(fundName);
+                if (aggregate == null) {
+                    aggregate = new ContributorAggregate(fundName);
+                    aggregatedDonationsCache.put(fundName, aggregate);
+                }
+                aggregate.addDonation(donation);
+            }
+        }
+        List<ContributorAggregate> aggregatedList = new ArrayList<>(aggregatedDonationsCache.values());
+        aggregatedList.sort(Comparator.comparingLong(ContributorAggregate::getTotalAmount).reversed());
+        return aggregatedList;
     }
 }

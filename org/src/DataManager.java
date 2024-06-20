@@ -1,4 +1,3 @@
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -8,146 +7,169 @@ import java.util.Map;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class DataManager {
 
-	private final WebClient client;
-	private Map<String, String> contributorNameCache;
+    private final WebClient client;
+    private Map<String, String> contributorNameCache;
 
-	public DataManager(WebClient client) {
-		this.client = client;
-		this.contributorNameCache = new HashMap<>();
-	}
+    public DataManager(WebClient client) {
+        if (client == null) {
+            throw new IllegalArgumentException("WebClient cannot be null");
+        }
+        this.client = client;
+        this.contributorNameCache = new HashMap<>();
+    }
 
-	/**
-	 * Attempt to log the user into an Organization account using the login and password.
-	 * This method uses the /findOrgByLoginAndPassword endpoint in the API
-	 * @return an Organization object if successful; null if unsuccessful
-	 */
-	public Organization attemptLogin(String login, String password) {
+    /**
+     * Attempt to log the user into an Organization account using the login and password.
+     * This method uses the /findOrgByLoginAndPassword endpoint in the API
+     * @return an Organization object if successful; null if unsuccessful
+     */
+    public Organization attemptLogin(String login, String password) {
+        if (login == null || password == null) {
+            throw new IllegalArgumentException("Login and password cannot be null");
+        }
 
-		try {
-			Map<String, Object> map = new HashMap<>();
-			map.put("login", login);
-			map.put("password", password);
-			String response = client.makeRequest("/findOrgByLoginAndPassword", map);
+        try {
+            Map<String, Object> map = new HashMap<>();
+            map.put("login", login);
+            map.put("password", password);
+            String response = client.makeRequest("/findOrgByLoginAndPassword", map);
 
-			JSONParser parser = new JSONParser();
-			JSONObject json = (JSONObject) parser.parse(response);
-			String status = (String)json.get("status");
+            if (response == null) {
+                throw new IllegalStateException("WebClient returned null");
+            }
 
-			if (status.equals("success")) {
-				JSONObject data = (JSONObject)json.get("data");
-				String fundId = (String)data.get("_id");
-				String name = (String)data.get("name");
-				String description = (String)data.get("description");
-				Organization org = new Organization(fundId, name, description);
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(response);
+            String status = (String) json.get("status");
 
-				JSONArray funds = (JSONArray)data.get("funds");
-				Iterator it = funds.iterator();
-				while(it.hasNext()){
-					JSONObject fund = (JSONObject) it.next(); 
-					fundId = (String)fund.get("_id");
-					name = (String)fund.get("name");
-					description = (String)fund.get("description");
-					Long targetLong = (Long)fund.get("target");
-					long target = targetLong != null ? targetLong : 0;
+            if ("success".equals(status)) {
+                JSONObject data = (JSONObject) json.get("data");
+                String fundId = (String) data.get("_id");
+                String name = (String) data.get("name");
+                String description = (String) data.get("description");
+                Organization org = new Organization(fundId, name, description);
 
-					Fund newFund = new Fund(fundId, name, description, target);
+                JSONArray funds = (JSONArray) data.get("funds");
+                Iterator<?> it = funds.iterator();
+                while (it.hasNext()) {
+                    JSONObject fund = (JSONObject) it.next();
+                    fundId = (String) fund.get("_id");
+                    name = (String) fund.get("name");
+                    description = (String) fund.get("description");
+                    Long targetLong = (Long) fund.get("target");
+                    long target = targetLong != null ? targetLong : 0;
 
-					JSONArray donations = (JSONArray)fund.get("donations");
-					List<Donation> donationList = new LinkedList<>();
-					Iterator it2 = donations.iterator();
-					while(it2.hasNext()){
-						JSONObject donation = (JSONObject) it2.next();
-						String contributorId = (String)donation.get("contributor");
-						String contributorName = this.getContributorName(contributorId);
-						Long amountLong = (Long)donation.get("amount");
-						long amount = amountLong != null ? amountLong : 0;
-						String date = (String)donation.get("date");
-						donationList.add(new Donation(fundId, contributorName, amount, date));
-					}
+                    Fund newFund = new Fund(fundId, name, description, target);
 
-					newFund.setDonations(donationList);
+                    JSONArray donations = (JSONArray) fund.get("donations");
+                    List<Donation> donationList = new LinkedList<>();
+                    Iterator<?> it2 = donations.iterator();
+                    while (it2.hasNext()) {
+                        JSONObject donation = (JSONObject) it2.next();
+                        String contributorId = (String) donation.get("contributor");
+                        String contributorName = this.getContributorName(contributorId);
+                        Long amountLong = (Long) donation.get("amount");
+                        long amount = amountLong != null ? amountLong : 0;
+                        String date = (String) donation.get("date");
+                        donationList.add(new Donation(fundId, contributorName, amount, date));
+                    }
 
-					org.addFund(newFund);
+                    newFund.setDonations(donationList);
+                    org.addFund(newFund);
+                }
 
-				}
+                return org;
+            } else {
+                throw new IllegalStateException("Login failed: " + json.get("error"));
+            }
+        } catch (ParseException e) {
+            throw new IllegalStateException("Failed to parse JSON response", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("Error in communicating with server", e);
+        }
+    }
 
-				return org;
-			}
-			else return null;
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new IllegalStateException("Error in communicating with server");
-		}
-	}
+    /**
+     * Look up the name of the contributor with the specified ID.
+     * This method uses the /findContributorNameById endpoint in the API.
+     * @return the name of the contributor on success; null if no contributor is found
+     */
+    public String getContributorName(String id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Contributor ID cannot be null");
+        }
 
-	/**
-	 * Look up the name of the contributor with the specified ID.
-	 * This method uses the /findContributorNameById endpoint in the API.
-	 * @return the name of the contributor on success; null if no contributor is found
-	 */
-	public String getContributorName(String id) {
-
-		if (contributorNameCache.containsKey(id)) {
+        if (contributorNameCache.containsKey(id)) {
             return contributorNameCache.get(id);
         }
 
-		try {
+        try {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", id);
+            String response = client.makeRequest("/findContributorNameById", map);
 
-			Map<String, Object> map = new HashMap<>();
-			map.put("id", id);
-			String response = client.makeRequest("/findContributorNameById", map);
+            if (response == null) {
+                throw new IllegalStateException("WebClient returned null");
+            }
 
-			JSONParser parser = new JSONParser();
-			JSONObject json = (JSONObject) parser.parse(response);
-			String status = (String)json.get("status");
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(response);
+            String status = (String) json.get("status");
 
-			if (status.equals("success")) {
-				String name = (String)json.get("data");
-				contributorNameCache.put(id, name);
-				return name;
-			}
-			else return null;
+            if ("success".equals(status)) {
+                String name = (String) json.get("data");
+                contributorNameCache.put(id, name);
+                return name;
+            } else {
+                return null;
+            }
+        } catch (ParseException e) {
+            throw new IllegalStateException("Failed to parse JSON response", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("Error in communicating with server", e);
+        }
+    }
 
-		}
-		catch (Exception e) {
-			return null;
-		}	
-	}
+    /**
+     * This method creates a new fund in the database using the /createFund endpoint in the API
+     * @return a new Fund object if successful; null if unsuccessful
+     */
+    public Fund createFund(String orgId, String name, String description, long target) {
+        if (orgId == null || name == null || description == null) {
+            throw new IllegalArgumentException("Organization ID, name, and description cannot be null");
+        }
 
-	/**
-	 * This method creates a new fund in the database using the /createFund endpoint in the API
-	 * @return a new Fund object if successful; null if unsuccessful
-	 */
-	public Fund createFund(String orgId, String name, String description, long target) {
+        try {
+            Map<String, Object> map = new HashMap<>();
+            map.put("orgId", orgId);
+            map.put("name", name);
+            map.put("description", description);
+            map.put("target", target);
+            String response = client.makeRequest("/createFund", map);
 
-		try {
+            if (response == null) {
+                throw new IllegalStateException("WebClient returned null");
+            }
 
-			Map<String, Object> map = new HashMap<>();
-			map.put("orgId", orgId);
-			map.put("name", name);
-			map.put("description", description);
-			map.put("target", target);
-			String response = client.makeRequest("/createFund", map);
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(response);
+            String status = (String) json.get("status");
 
-			JSONParser parser = new JSONParser();
-			JSONObject json = (JSONObject) parser.parse(response);
-			String status = (String)json.get("status");
-
-			if (status.equals("success")) {
-				JSONObject fund = (JSONObject)json.get("data");
-				String fundId = (String)fund.get("_id");
-				return new Fund(fundId, name, description, target);
-			}
-			else return null;
-
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}	
-	}
+            if ("success".equals(status)) {
+                JSONObject fund = (JSONObject) json.get("data");
+                String fundId = (String) fund.get("_id");
+                return new Fund(fundId, name, description, target);
+            } else {
+                return null;
+            }
+        } catch (ParseException e) {
+            throw new IllegalStateException("Failed to parse JSON response", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("Error in communicating with server", e);
+        }
+    }
 }
