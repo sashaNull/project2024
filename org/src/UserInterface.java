@@ -1,5 +1,6 @@
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
@@ -166,7 +167,21 @@ public class UserInterface {
                 ((double) total_amount / fund.getTarget()) * 100);
 
         System.out.println(
-                "Press the Enter key to go back to the listing of funds");
+                            "Enter 'a' to see aggregated donations by contributor or press Enter to go back to the listing of funds");
+        String input = in.nextLine().trim();
+        if (input.equals("a")) {
+            displayAggregatedDonations(fund);
+        }
+    }
+
+    public void displayAggregatedDonations(Fund fund) {
+        List<ContributorAggregate> aggregatedDonations = fund.getAggregatedDonations();
+        System.out.println("\n\nAggregated Donations:");
+        for (ContributorAggregate aggregate : aggregatedDonations) {
+            System.out.printf("%s, %d donations, $%d total%n", aggregate.getContributorName(),
+                    aggregate.getDonationCount(), aggregate.getTotalAmount());
+        }
+        System.out.println("Press the Enter key to go back to the listing of funds");
         in.nextLine();
     }
 
