@@ -13,14 +13,14 @@ public class DataManager_getContributorName_Test {
 				return "{\"status\":\"success\",\"data\":\"John Doe\"}";
 			}
 		});
-		
+
 		String name = dm.getContributorName("12345");
-		
+
 		assertNotNull(name);
 		assertEquals("John Doe", name);
 	}
-	
-	@Test
+
+	@Test(expected = IllegalStateException.class)
 	public void testContributorNotFound() {
 		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
 			@Override
@@ -28,13 +28,13 @@ public class DataManager_getContributorName_Test {
 				return "{\"status\":\"error\",\"message\":\"Contributor not found\"}";
 			}
 		});
-		
+
 		String name = dm.getContributorName("invalidId");
-		
+
 		assertNull(name);
 	}
 
-	@Test
+	@Test(expected = IllegalStateException.class)
 	public void testServerError() {
 		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
 			@Override
@@ -42,13 +42,13 @@ public class DataManager_getContributorName_Test {
 				return "{\"status\":\"error\",\"message\":\"Server error\"}";
 			}
 		});
-		
+
 		String name = dm.getContributorName("12345");
-		
+
 		assertNull(name);
 	}
 
-	@Test
+	@Test(expected = IllegalStateException.class)
 	public void testNetworkFailure() {
 		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
 			@Override
@@ -56,13 +56,13 @@ public class DataManager_getContributorName_Test {
 				throw new RuntimeException("Network failure");
 			}
 		});
-		
+
 		String name = dm.getContributorName("12345");
-		
+
 		assertNull(name);
 	}
 
-	@Test
+	@Test(expected = IllegalStateException.class)
 	public void testInvalidJsonResponse() {
 		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
 			@Override
@@ -70,9 +70,9 @@ public class DataManager_getContributorName_Test {
 				return "Invalid JSON response";
 			}
 		});
-		
+
 		String name = dm.getContributorName("12345");
-		
+
 		assertNull(name);
 	}
 }

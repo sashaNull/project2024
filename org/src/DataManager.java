@@ -16,20 +16,26 @@ public class DataManager {
 
     public DataManager(WebClient client) {
         if (client == null) {
-            throw new IllegalArgumentException("WebClient cannot be null");
+            throw new IllegalStateException("WebClient cannot be null");
         }
         this.client = client;
         this.contributorNameCache = new HashMap<>();
     }
 
     /**
-     * Attempt to log the user into an Organization account using the login and password.
+     * Attempt to log the user into an Organization account using the login and
+     * password.
      * This method uses the /findOrgByLoginAndPassword endpoint in the API
+     * 
      * @return an Organization object if successful; null if unsuccessful
      */
     public Organization attemptLogin(String login, String password) {
-        if (login == null || password == null) {
-            throw new IllegalArgumentException("Login and password cannot be null");
+        if (login == null) {
+            throw new IllegalArgumentException("Login cannot be null");
+        }
+
+        if (password == null) {
+            throw new IllegalArgumentException("Password cannot be null");
         }
 
         try {
@@ -84,7 +90,7 @@ public class DataManager {
 
                 return org;
             } else {
-                throw new IllegalStateException("Login failed: " + json.get("error"));
+                throw new IllegalStateException("WebClient returned error status: " + status);
             }
         } catch (ParseException e) {
             throw new IllegalStateException("Failed to parse JSON response", e);
@@ -96,7 +102,9 @@ public class DataManager {
     /**
      * Look up the name of the contributor with the specified ID.
      * This method uses the /findContributorNameById endpoint in the API.
-     * @return the name of the contributor on success; null if no contributor is found
+     * 
+     * @return the name of the contributor on success; null if no contributor is
+     *         found
      */
     public String getContributorName(String id) {
         if (id == null) {
@@ -125,7 +133,7 @@ public class DataManager {
                 contributorNameCache.put(id, name);
                 return name;
             } else {
-                return null;
+                throw new IllegalStateException("WebClient returned error status: " + status);
             }
         } catch (ParseException e) {
             throw new IllegalStateException("Failed to parse JSON response", e);
@@ -135,12 +143,20 @@ public class DataManager {
     }
 
     /**
-     * This method creates a new fund in the database using the /createFund endpoint in the API
+     * This method creates a new fund in the database using the /createFund endpoint
+     * in the API
+     * 
      * @return a new Fund object if successful; null if unsuccessful
      */
     public Fund createFund(String orgId, String name, String description, long target) {
-        if (orgId == null || name == null || description == null) {
-            throw new IllegalArgumentException("Organization ID, name, and description cannot be null");
+        if (orgId == null) {
+            throw new IllegalArgumentException("Organization ID cannot be null");
+        }
+        if (name == null) {
+            throw new IllegalArgumentException("Fund name cannot be null");
+        }
+        if (description == null) {
+            throw new IllegalArgumentException("Fund description cannot be null");
         }
 
         try {
@@ -164,7 +180,7 @@ public class DataManager {
                 String fundId = (String) fund.get("_id");
                 return new Fund(fundId, name, description, target);
             } else {
-                return null;
+                throw new IllegalStateException("WebClient returned error status: " + status);
             }
         } catch (ParseException e) {
             throw new IllegalStateException("Failed to parse JSON response", e);
