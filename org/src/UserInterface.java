@@ -41,10 +41,8 @@ public class UserInterface {
                 break;
             } else if (input.equals("l") || input.equals("logout")) {
                 logout();
-                if (!login()) {
-                    System.out.println("Login failed.");
-                    break;
-                }
+                initialMenu();
+                break;
             }
 
             try {
@@ -67,27 +65,6 @@ public class UserInterface {
     private void logout() {
         System.out.println("\nLogging out...\n");
         this.org = null;
-    }
-
-    private boolean login() {
-        System.out.println("Please log in again.");
-        System.out.print("Enter username: ");
-        String login = in.nextLine().trim();
-        System.out.print("Enter password: ");
-        String password = in.nextLine().trim();
-
-        try {
-            Organization org = dataManager.attemptLogin(login, password);
-            if (org == null) {
-                return false;
-            } else {
-                this.org = org;
-                return true;
-            }
-        } catch (IllegalStateException e) {
-            System.out.println("Error in communicating with server.");
-            return false;
-        }
     }
 
     public void createFund() {
@@ -184,6 +161,119 @@ public class UserInterface {
         System.out.println("Press the Enter key to go back to the listing of funds");
         in.nextLine();
     }
+    
+    public void createOrganization() {
+        String username;
+        String password;
+        String orgName;
+        String orgDescription;
+
+        while (true) {
+            System.out.print("Enter the username: ");
+            username = in.nextLine().trim();
+
+            if (username.isEmpty()) {
+                System.out.println("Username cannot be blank. Please enter a valid username.");
+                continue;
+            }
+            try {
+                if (dataManager.isUsernameTaken(username)) {
+                    System.out.println("Username already taken. Please choose another username.");
+                } else {
+                    break;
+                }
+            }
+            catch (IllegalStateException e)
+            {
+                System.out.println("Error in communicating with server. Please try again.");
+            }
+        }
+
+        while (true) {
+            System.out.print("Enter the password: ");
+            password = in.nextLine().trim();
+            if (!password.isEmpty()) {
+                break;
+            }
+            System.out.println("Password cannot be blank. Please enter a valid password.");
+        }
+
+        // Prompt for organization name and ensure it's not blank
+        while (true) {
+            System.out.print("Enter the organization name: ");
+            orgName = in.nextLine().trim();
+            if (!orgName.isEmpty()) {
+                break;
+            }
+            System.out.println("Organization name cannot be blank. Please enter a valid organization name.");
+        }
+
+        while (true) {
+            System.out.print("Enter the organization description: ");
+            orgDescription = in.nextLine().trim();
+            if (!orgDescription.isEmpty()) {
+                break;
+            }
+            System.out.println("Organization description cannot be blank. Please enter a valid organization description.");
+        }
+
+        try {
+            Organization newOrg = dataManager.createOrganization(username, password, orgName, orgDescription);
+            if (newOrg != null) {
+                this.org = newOrg;
+                System.out.println("Organization created successfully.");
+            } else {
+                System.out.println("Failed to create organization. Please try again.");
+            }
+        } catch (IllegalStateException e) {
+            System.out.println("Error in communicating with server. Please try again.");
+        }
+    }
+    
+    public void initialMenu()
+    {
+       
+       while (true)
+        {
+            System.out.println("Welcome to the Organization App");
+            System.out.println("Enter 'l' to login");
+            System.out.println("Enter 'c' to create a new organization");
+            System.out.println("Enter 'q' to quit");
+            
+            String choice = in.nextLine().trim();
+
+            if (choice.equals("q")) {
+                System.out.println("Goodbye!");
+                break;
+            } else if (choice.equals("l")) {
+                System.out.print("Enter username: ");
+                String login = in.nextLine().trim();
+                System.out.print("Enter password: ");
+                String password = in.nextLine().trim();
+                try {
+                    Organization org = dataManager.attemptLogin(login, password);
+                    if (org == null) {
+                        System.out.println("Login failed. Please try again.");
+                    } else {
+                        this.org = org;
+                        System.out.println("\nLogin successful. Welcome!");
+                        start();
+                        break;
+                    }
+                } catch (IllegalStateException e) {
+                    System.out.println("\nError in communicating with server. Please try again.");
+                }
+            } else if (choice.equals("c")) {
+                createOrganization();
+                createFund();
+                start(); 
+                break;
+            } else {
+                System.out.println("Invalid option. Please enter 'l' to login, 'c' to create a new organization, or 'q' to quit.");
+            }
+        }
+
+    }
 
     public static void main(String[] args) {
 
@@ -191,30 +281,35 @@ public class UserInterface {
 
         String login = "";
         String password = "";
-
+        
         if (args.length == 2) {
             login = args[0];
             password = args[1];
         }
+        
+        UserInterface ui = new UserInterface(ds, null);
 
-        while (true) {
+        if (login.isEmpty() && password.isEmpty())
+        {
+            ui.initialMenu();
+        }
+        else {
             try {
                 Organization org = ds.attemptLogin(login, password);
 
                 if (org == null) {
                     System.out.println("Login failed.");
-                    return;
+                    login = "";
+                    password = "";
+                    ui.initialMenu();
                 } else {
-                    UserInterface ui = new UserInterface(ds, org);
+                    ui.org = org;
+                    System.out.println("\nLogin successful. Welcome!");
                     ui.start();
-                    return;
                 }
             } catch (IllegalStateException e) {
                 System.out.println("Error in communicating with server. Please try again.");
-                System.out.print("Enter username: ");
-                login = new Scanner(System.in).nextLine().trim();
-                System.out.print("Enter password: ");
-                password = new Scanner(System.in).nextLine().trim();
+                ui.initialMenu();
             }
         }
     }

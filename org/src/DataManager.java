@@ -188,4 +188,92 @@ public class DataManager {
             throw new IllegalStateException("Error in communicating with server", e);
         }
     }
+    
+    public boolean isUsernameTaken(String login) {
+        if (login == null) {
+            throw new IllegalArgumentException("Login cannot be null");
+        }
+
+        try {
+            Map<String, Object> map = new HashMap<>();
+            map.put("login", login);
+            String response = client.makeRequest("/checkUsername", map);
+
+            if (response == null) {
+                throw new IllegalStateException("WebClient returned null");
+            }
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(response);
+            String status = (String) json.get("status");
+
+            if ("taken".equals(status)) {
+                return true;
+            } 
+            else if ("available".equals(status)) {
+                return false;
+            }
+            else {
+                throw new IllegalStateException("WebClient returned error status: " + status);
+            }
+        } catch (ParseException e) {
+            throw new IllegalStateException("Failed to parse JSON response", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("Error in communicating with server", e);
+        }
+    }
+
+    /**
+     * Create a new organization with the provided details.
+     * This method uses the /createOrg endpoint in the API.
+     *
+     * @return an Organization object if the creation is successful; null if unsuccessful.
+     */    
+    public Organization createOrganization(String login, String password, String name, String description)
+    {
+        if (login == null) {
+            throw new IllegalArgumentException("Login cannot be null");
+        }
+        
+        if (password == null) {
+            throw new IllegalArgumentException("Password cannot be null");
+        }
+        
+        if (name == null) {
+            throw new IllegalArgumentException("Name cannot be null");
+        }
+        
+        if (description == null) {
+            throw new IllegalArgumentException("Description cannot be null");
+        }
+        
+        try{
+           Map<String, Object> map = new HashMap<>(); 
+           map.put("login", login);
+           map.put("password", password);
+           map.put("name", name);
+           map.put("description", description);
+           String response = client.makeRequest("/createOrg", map);
+           
+           if (response == null) {
+                throw new IllegalStateException("WebClient returned null");
+            }
+        
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(response);
+            String status = (String) json.get("status");
+            if ("success".equals(status)) {
+                JSONObject data = (JSONObject) json.get("data");
+                String orgId = (String) data.get("_id");
+                return new Organization(orgId, name, description);
+            } else {
+                throw new IllegalStateException("WebClient returned error status: " + status);
+            }
+            
+        } catch (ParseException e) {
+            throw new IllegalStateException("Failed to parse JSON response", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("Error in communicating with server", e);
+        }
+
+    }
 }

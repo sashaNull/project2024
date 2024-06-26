@@ -30,6 +30,47 @@ app.use('/findOrgByLoginAndPassword', (req, res) => {
     });
 
 /*
+ Check if an organization login username is already taken
+*/
+
+app.use('/checkUsername', (req, res) => {
+	var query = {"login":req.query.login};
+	
+	Organization.findOne(query, (err, result) =>{
+		if (err) {
+			res.json({"status" : "error", "data" : err});
+		} else if (result) {
+			res.json({"status" : "taken"});
+		} else {
+			res.json({"status" : "available"});
+		}
+	})
+})
+
+/*
+ Create a new organiztion
+*/
+app.use('/createOrg', (req, res) => {
+	var organization = new Organization({
+		login: req.query.login,
+		password: req.query.password,
+		name: req.query.name,
+		description: req.query.description,
+		funds: []
+	});
+	
+	organization.save((err, newOrg) => {
+		if (err) {
+			res.json({"status" : "error", "data" : err});
+		}
+		else {
+			res.json({"status" : "success", "data" : newOrg});
+		}
+	});
+
+});
+
+/*
 Create a new fund
 */
 app.use('/createFund', (req, res) => {
