@@ -88,6 +88,31 @@ app.use('/changePassword', (req, res) => {
 	});
 });
 
+app.use('/editOrgInfo', (req, res) => {
+    var filter = {"_id" : req.query.id };
+    var update = {};
+    if (req.query.name) {
+        update["name"] = req.query.name;
+    }
+    if (req.query.description) {
+        update["description"] = req.query.description;
+    }
+    var action = {"$set" : update};
+
+    Organization.findOneAndUpdate(filter, action, {new : true}, (err, result) => {
+        if (err) {
+            res.json({"status" : "error", "data" : err});
+        }
+        else if (!result) {
+            res.json({"status" : "update failed"});
+        }
+        else {
+            res.json({"status" : "success", "data" : result});
+        }
+    });
+});
+
+
 /*
 Create a new fund
 */

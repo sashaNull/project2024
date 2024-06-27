@@ -32,6 +32,7 @@ public class UserInterface {
             }
             System.out.println("Enter 0 to create a new fund.");
             System.out.println("Enter 'cp' or 'change password' to change password.");
+            System.out.println("Enter 'eo' or 'edit organization' to edit account information.");
             System.out.println("Enter 'l' or 'logout' to log out.");
             System.out.println("Enter 'q' or 'quit' to exit the program.");
 
@@ -47,7 +48,11 @@ public class UserInterface {
             } else if (input.equals("cp") || input.equals("change password")) {
                 changePassword();
                 continue;
+            } else if (input.equals("eo") || input.equals("edit organization")) {
+                editOrganizationInfo();
+                continue;
             }
+    
 
             try {
                 int option = Integer.parseInt(input);
@@ -111,6 +116,55 @@ public class UserInterface {
         }
 
     }
+    
+    public void editOrganizationInfo() {
+        String currentPassword;
+        String newName;
+        String newDescription;
+    
+        // Prompt for current password
+        System.out.print("Enter current password: ");
+        currentPassword = in.nextLine().trim();
+    
+        try {
+            Organization loggedInOrg = dataManager.attemptLogin(org.getLogin(), currentPassword);
+            if (loggedInOrg == null) {
+                System.out.println("Incorrect current password. Please try again.");
+                return;
+            }
+        } catch (IllegalStateException e) {
+            System.out.println("Error in communicating with server. Please try again.");
+            return;
+        }
+    
+        // Prompt for new name
+        System.out.print("Enter new name (leave blank to keep current name): ");
+        newName = in.nextLine().trim();
+        if (newName.isEmpty()) {
+            newName = org.getName();
+        }
+    
+        // Prompt for new description
+        System.out.print("Enter new description (leave blank to keep current description): ");
+        newDescription = in.nextLine().trim();
+        if (newDescription.isEmpty()) {
+            newDescription = org.getDescription();
+        }
+    
+        try {
+            boolean success = dataManager.editOrganizationInfo(org.getId(), newName, newDescription);
+            if (success) {
+                org.setName(newName);
+                org.setDescription(newDescription);
+                System.out.println("Account information updated successfully.");
+            } else {
+                System.out.println("Failed to update account information. Please try again.");
+            }
+        } catch (IllegalStateException e) {
+            System.out.println("Error in communicating with server. Please try again.");
+        }
+    }
+    
 
     public void logout() {
         System.out.println("\nLogging out...\n");

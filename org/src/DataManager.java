@@ -304,6 +304,45 @@ public class DataManager {
             throw new IllegalStateException("Error in communicating with server", e);
         }
 
-
     }
+    
+    public boolean editOrganizationInfo(String orgId, String newName, String newDescription) {
+        if (orgId == null) {
+            throw new IllegalArgumentException("OrgID cannot be null");
+        }
+    
+        // Prepare update data
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", orgId);
+        if (newName != null && !newName.isEmpty()) {
+            map.put("name", newName);
+        }
+        if (newDescription != null && !newDescription.isEmpty()) {
+            map.put("description", newDescription);
+        }
+    
+        try {
+            String response = client.makeRequest("/editOrgInfo", map);
+            if (response == null) {
+                throw new IllegalStateException("WebClient returned null");
+            }
+    
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(response);
+            String status = (String) json.get("status");
+            if ("success".equals(status)) {
+                return true;
+            } else if ("update failed".equals(status)) {
+                return false;
+            } else {
+                throw new IllegalStateException("WebClient returned error status: " + status);
+            }
+        } catch (ParseException e) {
+            throw new IllegalStateException("Failed to parse JSON response", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("Error in communicating with server", e);
+        }
+    }
+    
+    
 }
