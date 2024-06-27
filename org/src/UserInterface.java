@@ -77,7 +77,7 @@ public class UserInterface {
         String confirmPassword;
         
         while (true) {
-            System.out.println("Enter current passwrod: ");
+            System.out.println("Enter current password: ");
             currentPassword = in.nextLine().trim();
             try {
                 Organization loggedInOrg = dataManager.attemptLogin(org.getLogin(), currentPassword);
