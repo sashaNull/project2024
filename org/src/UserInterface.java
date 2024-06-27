@@ -30,7 +30,8 @@ public class UserInterface {
                 }
                 System.out.println("Enter the fund number to see more information.");
             }
-            System.out.println("Enter 0 to create a new fund");
+            System.out.println("Enter 0 to create a new fund.");
+            System.out.println("Enter 'cp' or 'change password' to change password.");
             System.out.println("Enter 'l' or 'logout' to log out.");
             System.out.println("Enter 'q' or 'quit' to exit the program.");
 
@@ -43,6 +44,9 @@ public class UserInterface {
                 logout();
                 initialMenu();
                 break;
+            } else if (input.equals("cp") || input.equals("change password")) {
+                changePassword();
+                continue;
             }
 
             try {
@@ -61,8 +65,54 @@ public class UserInterface {
             }
         }
     }
+    
+    public void changePassword() {
+        String currentPassword;
+        String newPassword;
+        String confirmPassword;
+        
+        while (true) {
+            System.out.println("Enter current passwrod: ");
+            currentPassword = in.nextLine().trim();
+            try {
+                Organization loggedInOrg = dataManager.attemptLogin(org.getLogin(), currentPassword);
+                if (loggedInOrg == null) {
+                    System.out.println("Incorrect current password. Please try again.");
+                    return;
+                }
+            } catch (IllegalStateException e) {
+                System.out.println("Error in communicating with server. Please try again.");
+                return;
+            }
+            
+            System.out.print("Enter new password: ");
+            newPassword = in.nextLine().trim();
+            
+            System.out.print("Confirm new password: ");
+            confirmPassword = in.nextLine().trim();
+            
+            if (!newPassword.equals(confirmPassword)) {
+                System.out.println("New passwords do not match. Please try again.");
+                return;
+            }
+            
+            try {
+                boolean success = dataManager.changePassword(org.getId(), newPassword);
+                if (success) {
+                    System.out.println("Password changed successfully.");
+                } else {
+                    System.out.println("Failed to change password. Please try again.");
+                }
+            } catch (IllegalStateException e) {
+                System.out.println("Error in communicating with server. Please try again.");
+            }
+            
+            break;
+        }
 
-    private void logout() {
+    }
+
+    public void logout() {
         System.out.println("\nLogging out...\n");
         this.org = null;
     }

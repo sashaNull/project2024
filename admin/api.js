@@ -19,9 +19,6 @@ app.use('/findOrgByLoginAndPassword', (req, res) => {
 		if (err) {
 		    res.json({ "status": "error", "data" : err});
 		}
-		else if (!result){
-		    res.json({ "status": "login failed" });
-		}
 		else {
 		    //console.log(result);
 		    res.json({ "status" : "success", "data" : result});
@@ -39,7 +36,8 @@ app.use('/checkUsername', (req, res) => {
 	Organization.findOne(query, (err, result) =>{
 		if (err) {
 			res.json({"status" : "error", "data" : err});
-		} else if (result) {
+		}
+		else if (result) {
 			res.json({"status" : "taken"});
 		} else {
 			res.json({"status" : "available"});
@@ -68,6 +66,26 @@ app.use('/createOrg', (req, res) => {
 		}
 	});
 
+});
+
+app.use('/changePassword', (req, res) => {
+	var filter = {"_id" : req.query.id };
+	var update = {"password" : req.query.password};
+	var action = {"$set" : update};
+	
+	Organization.findOneAndUpdate (filter, action, {new : true}, (err, result) =>
+	{
+		if (err) {
+			res.json({"status" : "error", "data" : err});
+		}
+		else if (!result) {
+			res.json({"status" : "change failed"});
+		}
+		else {
+			res.json({"status" : "success", "data" : result});
+		}
+		
+	});
 });
 
 /*

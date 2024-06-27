@@ -54,10 +54,14 @@ public class DataManager {
 
             if ("success".equals(status)) {
                 JSONObject data = (JSONObject) json.get("data");
+                if (data == null)
+                {
+                    return null;
+                }
                 String fundId = (String) data.get("_id");
                 String name = (String) data.get("name");
                 String description = (String) data.get("description");
-                Organization org = new Organization(fundId, name, description);
+                Organization org = new Organization(fundId, name, login, description);
 
                 JSONArray funds = (JSONArray) data.get("funds");
                 Iterator<?> it = funds.iterator();
@@ -226,12 +230,12 @@ public class DataManager {
      * Create a new organization with the provided details.
      * This method uses the /createOrg endpoint in the API.
      *
-     * @return an Organization object if the creation is successful; null if unsuccessful.
+     * @return an Organization object if the creation is successful;
      */    
     public Organization createOrganization(String login, String password, String name, String description)
     {
         if (login == null || password == null || name == null || description == null) {
-            throw new IllegalArgumentException("Login cannot be null");
+            throw new IllegalArgumentException("Login/ password/ name/ description cannot be null");
         }
         
         try{
@@ -252,7 +256,7 @@ public class DataManager {
             if ("success".equals(status)) {
                 JSONObject data = (JSONObject) json.get("data");
                 String orgId = (String) data.get("_id");
-                return new Organization(orgId, name, description);
+                return new Organization(orgId, name, login, description);
             } else {
                 throw new IllegalStateException("WebClient returned error status: " + status);
             }
@@ -262,6 +266,44 @@ public class DataManager {
         } catch (Exception e) {
             throw new IllegalStateException("Error in communicating with server", e);
         }
+
+    }
+    
+    public boolean changePassword (String orgId, String newPassword)
+    {
+        if (orgId == null || newPassword == null) {
+            throw new IllegalArgumentException("OrgID/ New Password cannot be null");
+        }
+        
+        try{
+           Map<String, Object> map = new HashMap<>(); 
+           map.put("id", orgId);
+           map.put("password", newPassword);
+           String response = client.makeRequest("/changePassword", map);
+           
+           if (response == null) {
+                throw new IllegalStateException("WebClient returned null");
+            }
+        
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(response);
+            String status = (String) json.get("status");
+            if ("success".equals(status)) {
+                return true;
+            } 
+            else if ("change failed".equals(status)) {
+                return false;
+            }
+            else {
+                throw new IllegalStateException("WebClient returned error status: " + status);
+            }
+            
+        } catch (ParseException e) {
+            throw new IllegalStateException("Failed to parse JSON response", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("Error in communicating with server", e);
+        }
+
 
     }
 }

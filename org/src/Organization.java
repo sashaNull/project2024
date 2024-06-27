@@ -5,13 +5,15 @@ public class Organization {
 	
 	private String id;
 	private String name;
+	private String login;
 	private String description;
 	
 	private List<Fund> funds;
 	
-	public Organization(String id, String name, String description) {
+	public Organization(String id, String name, String login, String description) {
 		this.id = id;
 		this.name = name;
+		this.login = login;
 		this.description = description;
 		funds = new LinkedList<>();
 	}
@@ -22,6 +24,10 @@ public class Organization {
 
 	public String getName() {
 		return name;
+	}
+
+	public String getLogin() {
+		return login;
 	}
 
 	public String getDescription() {
