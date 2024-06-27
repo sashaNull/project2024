@@ -230,20 +230,8 @@ public class DataManager {
      */    
     public Organization createOrganization(String login, String password, String name, String description)
     {
-        if (login == null) {
+        if (login == null || password == null || name == null || description == null) {
             throw new IllegalArgumentException("Login cannot be null");
-        }
-        
-        if (password == null) {
-            throw new IllegalArgumentException("Password cannot be null");
-        }
-        
-        if (name == null) {
-            throw new IllegalArgumentException("Name cannot be null");
-        }
-        
-        if (description == null) {
-            throw new IllegalArgumentException("Description cannot be null");
         }
         
         try{

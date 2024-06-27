@@ -75,4 +75,29 @@ public class DataManager_getContributorName_Test {
 
 		assertNull(name);
 	}
+
+	@Test
+	public void testSuccessfulCaching() {
+		DataManager dm = new DataManager(new WebClient("localhost", 3001) {
+			int cache = 0;
+
+			@Override
+			public String makeRequest(String resource, Map<String, Object> queryParams) {
+				if (cache == 0){
+					cache += 1;
+					return "{\"status\":\"success\",\"data\":\"John Doe\"}";
+				}
+				else
+				{
+					return "";
+				}
+			}
+		});
+
+		String name = dm.getContributorName("12345");
+		assertEquals("John Doe", name);
+
+		name = dm.getContributorName("12345");
+		assertEquals("John Doe", name);
+	}
 }
