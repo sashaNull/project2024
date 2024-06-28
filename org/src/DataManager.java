@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -103,18 +104,125 @@ public class DataManager {
         }
     }
 
-    /**
-     * Look up the name of the contributor with the specified ID.
-     * This method uses the /findContributorNameById endpoint in the API.
-     * 
-     * @return the name of the contributor on success; null if no contributor is
-     *         found
-     */
+    public List<Contributor> getAllContributors() {
+        List<Contributor> contributors = new ArrayList<>();
+        try {
+            String response = client.makeRequest("/allContributors", Map.of());
+            System.out.println("Response from /allContributors: " + response);
+
+            if (response == null) {
+                throw new IllegalStateException("WebClient returned null");
+            }
+
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(response);
+            String status = (String) json.get("status");
+
+            if ("success".equals(status)) {
+                JSONArray data = (JSONArray) json.get("data");
+                for (Object obj : data) {
+                    JSONObject contributorJson = (JSONObject) obj;
+                    String id = (String) contributorJson.get("_id");
+                    String name = (String) contributorJson.get("name");
+                    contributors.add(new Contributor(id, name));
+                }
+            } else {
+                throw new IllegalStateException("Error status returned from server");
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to fetch contributors: " + e.getMessage());
+            e.printStackTrace();
+            throw new IllegalStateException("Error in communicating with server", e);
+        }
+        return contributors;
+    }
+
+    public boolean makeDonation(String fundId, String contributorId, long amount) {
+        try {
+            Map<String, Object> map = new HashMap<>();
+            map.put("fund", fundId);
+            map.put("contributor", contributorId);
+            map.put("amount", amount);
+            String response = client.makeRequest("/makeDonation", map);
+            System.out.println("Response from /makeDonation: " + response);
+
+            if (response == null) {
+                throw new IllegalStateException("WebClient returned null");
+            }
+
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(response);
+            String status = (String) json.get("status");
+
+            if ("success".equals(status)) {
+                return true;
+            } else {
+                throw new IllegalStateException("Error status returned from server");
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to make donation: " + e.getMessage());
+            e.printStackTrace();
+            throw new IllegalStateException("Error in communicating with server", e);
+        }
+    }
+
+    public Fund getFundById(String fundId) {
+        try {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", fundId);
+            String response = client.makeRequest("/findFundById", map);
+            System.out.println("Response from /findFundById: " + response);
+
+            if (response == null) {
+                throw new IllegalStateException("WebClient returned null");
+            }
+
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(response);
+            String status = (String) json.get("status");
+
+            if ("success".equals(status)) {
+                JSONObject data = (JSONObject) json.get("data");
+                String id = (String) data.get("_id");
+                String name = (String) data.get("name");
+                String description = (String) data.get("description");
+
+                // Handle null target
+                Long targetLong = (Long) data.get("target");
+                long target = targetLong != null ? targetLong : 0;
+
+                Fund fund = new Fund(id, name, description, target);
+
+                JSONArray donations = (JSONArray) data.get("donations");
+                List<Donation> donationList = new ArrayList<>();
+                for (Object obj : donations) {
+                    JSONObject donationJson = (JSONObject) obj;
+                    String contributorId = (String) donationJson.get("contributor");
+                    String contributorName = this.getContributorName(contributorId);
+                    long amount = (Long) donationJson.get("amount");
+                    String date = (String) donationJson.get("date");
+
+                    Donation donation = new Donation(id, contributorName, amount, date);
+                    donationList.add(donation);
+                }
+                fund.setDonations(donationList);
+                return fund;
+            } else {
+                throw new IllegalStateException("Error status returned from server");
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to fetch fund: " + e.getMessage());
+            e.printStackTrace();
+            throw new IllegalStateException("Error in communicating with server", e);
+        }
+    }
+
     public String getContributorName(String id) {
         if (id == null) {
             throw new IllegalArgumentException("Contributor ID cannot be null");
         }
 
+        // Cache to avoid redundant network calls
         if (contributorNameCache.containsKey(id)) {
             return contributorNameCache.get(id);
         }
@@ -134,10 +242,10 @@ public class DataManager {
 
             if ("success".equals(status)) {
                 String name = (String) json.get("data");
-                contributorNameCache.put(id, name);
+                contributorNameCache.put(id, name); // Add to cache
                 return name;
             } else {
-                throw new IllegalStateException("WebClient returned error status: " + status);
+                throw new IllegalStateException("Error status returned from server");
             }
         } catch (ParseException e) {
             throw new IllegalStateException("Failed to parse JSON response", e);
@@ -145,7 +253,7 @@ public class DataManager {
             throw new IllegalStateException("Error in communicating with server", e);
         }
     }
-
+    
     /**
      * This method creates a new fund in the database using the /createFund endpoint
      * in the API

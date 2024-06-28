@@ -45,6 +45,66 @@ app.use('/checkUsername', (req, res) => {
 	})
 })
 
+app.use('/makeDonation', (req, res) => {
+    const { contributor, fund, amount } = req.query;
+
+    if (!contributor || !fund || isNaN(amount) || amount <= 0) {
+        return res.json({ 'status': 'error', 'data': 'Invalid input' });
+    }
+
+    Contributor.findById(contributor, (err, contributorResult) => {
+        if (err || !contributorResult) {
+            return res.json({ 'status': 'error', 'data': 'Contributor not found' });
+        }
+
+        Fund.findById(fund, (err, fundResult) => {
+            if (err || !fundResult) {
+                return res.json({ 'status': 'error', 'data': 'Fund not found' });
+            }
+
+            var donation = new Donation({
+                contributor,
+                fund,
+                date: Date.now(),
+                amount: parseFloat(amount)
+            });
+
+            donation.save((err) => {
+                if (err) {
+                    return res.json({ 'status': 'error', 'data': err });
+                }
+
+                Contributor.findByIdAndUpdate(contributor, { $push: { donations: donation } }, (err) => {
+                    if (err) {
+                        return res.json({ 'status': 'error', 'data': err });
+                    }
+
+                    Fund.findByIdAndUpdate(fund, { $push: { donations: donation } }, { new: true }, (err, updatedFund) => {
+                        if (err) {
+                            return res.json({ 'status': 'error', 'data': err });
+                        }
+
+                        Organization.findByIdAndUpdate(updatedFund.org, { $pull: { funds: { _id: fund } } }, (err) => {
+                            if (err) {
+                                return res.json({ 'status': 'error', 'data': err });
+                            }
+
+                            Organization.findByIdAndUpdate(updatedFund.org, { $push: { funds: updatedFund } }, { new: true }, (err) => {
+                                if (err) {
+                                    return res.json({ 'status': 'error', 'data': err });
+                                }
+
+                                res.json({ 'status': 'success', 'data': donation });
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+
 /*
  Create a new organiztion
 */
@@ -211,6 +271,18 @@ app.use('/deleteFund', (req, res) => {
 
     });
 
+	app.get('/allContributors', (req, res) => {
+		console.log('Received request for /allContributors');
+		Contributor.find({}, (err, result) => {
+			if (err) {
+				console.error('Error fetching contributors:', err);
+				res.json({ 'status': 'error', 'data': err });
+			} else {
+				console.log('Contributors fetched successfully:', result);
+				res.json({ 'status': 'success', 'data': result });
+			}
+		});
+	});
 
 
 /*
