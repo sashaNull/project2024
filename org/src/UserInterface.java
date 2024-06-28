@@ -220,8 +220,8 @@ public class UserInterface {
 
         DataManager ds = new DataManager(new WebClient("localhost", 3001));
 
-        String login = "upenn";
-        String password = "123456";
+        String login = "";
+        String password = "";
 
         if (args.length == 2) {
             login = args[0];
