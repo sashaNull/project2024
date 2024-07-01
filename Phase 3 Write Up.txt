@@ -1,0 +1,20 @@
+﻿Sasha Nguyen, Matthieu Perez, Rebecca Metzman
+In addition to implementing the tasks described above, your team should also write a brief report that includes the following:
+1. The Additional Tasks that you would like graded for this phase. Please keep in mind that we will only grade three Additional Tasks for a group of three, and four Additional Tasks for a group of four. If you list more than that, the tasks that get graded will be decided at the grader’s discretion.
+   1. 3.1, 3.2, 3.3, 3.4
+2. For each task you completed in this phase (Required or Additional), a brief description of the changes you made to the provided code, e.g. the names of any classes or methods that were changed, new methods that were created, etc.
+   1. For 3.1, added endpoints in admin/api.js to check username availability and create new organizations. Implemented corresponding methods in DataManager.java and added corresponding tests. Updated UserInterface.java to streamline the login process and add organization creation functionality. Cleaned up WebClient.java by removing commented-out code.
+   2. For 3.2, added an endpoint in admin/api.js to change organization passwords. Implemented changePassword method in DataManager.java and added corresponding tests in DataManager_changePassword_Test.java. Updated Organization.java to include login attribute. Modified UserInterface.java to include an option for changing passwords, along with necessary prompts and validations. Cleaned up redundant code and improved error handling.
+   3. For 3.3, added an endpoint in admin/api.js to edit organization information. Implemented editOrganizationInfo method in DataManager.java and added corresponding tests in DataManager_editOrganizationInfo_Test.java. Updated Organization.java to include setters for name and description. Modified UserInterface.java to include an option for editing organization information, along with necessary prompts and validations. Cleaned up redundant code and improved error handling.
+   4. For 3.4, in DataManager, I added methods getFundById, makeDonation, getAllContributors, and getContributorName, I added logic to check for the "status": "error" in the JSON response and throw an IllegalStateException if encountered.  In getFundById, I updated the code to handle the case where the target value might be null in the server response: long target = targetLong != null ? targetLong : 0;.  I also added tests for these all in DataManagerTest.java  I also added the corresponding route to api.js as well as updated UserInterface to allow for the changes to be reflected in the program.
+
+
+3. Any known bugs or other issues with the tasks you attempted in this phase.
+4. Instructions on how to start each app, if you changed anything from the original version of the code, e.g. the name of the Java main class or JavaScript entry point, arguments to the programs, etc. If you did not change anything, you may omit this.
+5. A brief but specific description of each team member’s contributions, including the task numbers that they worked on.
+   1. Rebecca worked on 3.4 & helped with 3.1 collaboratively 
+   2. Sasha worked on 3.2 & 3.1
+   3. Mathieu worked on 3.3 & helped with 3.1 collaboratively
+
+
+The writeup should be committed to your GitHub repo as a plain-text or .md file named “Phase 3 writeup” by the deadline stated above.
